@@ -46,3 +46,66 @@ async function connectToDBAndStartListening() {
         );
     });
 }
+
+// GET /tasks
+app.get("/tasks", async (req, res) => {
+    // const allSignatures = getAllTasks();
+    // res.status(200).json(allSignatures);
+    try {
+        const text = "SELECT * FROM tasks";
+        const tasks = await client.query(text);
+        res.status(200).json(tasks.rows);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+app.post("/tasks", async (req, res) => {
+    try {
+        const { title, description, due } = req.body;
+        const text =
+            "INSERT INTO tasks (title, description, due, created) values($1, $2, $3, now())";
+        const values = [title, description, due];
+        const newTask = await client.query(text, values);
+        res.json(newTask);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+app.get("/tasks/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const text = "SELECT * FROM tasks WHERE id = $1";
+        const values = [id];
+        const task = await client.query(text, values);
+        res.json(task.rows[0]);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+app.delete("/tasks/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const text = "DELETE FROM tasks WHERE id = $1";
+        const values = [id];
+        const deletedTask = await client.query(text, values);
+        res.json(deletedTask);
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+app.patch("/tasks/:id/status", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body;
+        const text = "UPDATE tasks SET status = $1 WHERE id = $2";
+        const values = [status, id];
+        const updatedTask = await client.query(text, values);
+        res.json(updatedTask);
+    } catch (error) {
+        console.error(error);
+    }
+});
